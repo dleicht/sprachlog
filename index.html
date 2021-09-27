@@ -128,28 +128,8 @@
           <div class="accordion-body" style="font-size:xx-small;">
             <div class="center text-muted">Erfassung anästhesierelevanter Zeitmarker mittels Spracherkennung.</div><BR/>
             <strong>Läuft nur mit dem Chrome Browser (Android, Mac, PC)!<BR/>Internetverbindung erforderlich!</strong><BR/>
-            Folgende Sprachbefehle werden erkannt: <BR/>
-            <code>sprachlog anästhesie präsenz beginn</code><BR/>
-            <code>sprachlog anästhesie beginn</code><BR/>
-            <code>sprachlog anästhesie intubation</code><BR/>
-            <code>sprachlog anästhesie um intubation</code><BR/>
-            <code>sprachlog anästhesie zugang peripher</code><BR/>
-            <code>sprachlog anästhesie zugang arterie</code><BR/>
-            <code>sprachlog anästhesie zugang zvk</code><BR/>
-            <code>sprachlog anästhesie einleitung ende</code><BR/>
-            <code>sprachlog anästhesie umlagerung</code><BR/>
-            <code>sprachlog anästhesie cpr</code><BR/>
-            <code>sprachlog anästhesie stimulation</code><BR/>
-            <code>sprachlog radiologie cct</code><BR/>
-            <code>sprachlog radiologie ct hws</code><BR/>
-            <code>sprachlog radiologie ct stamm</code><BR/>
-            <code>sprachlog op beginn</code><BR/>
-            <code>sprachlog op schnitt</code><BR/>
-            <code>sprachlog op pause</code><BR/>
-            <code>sprachlog op pause ende</code><BR/>
-            <code>sprachlog op naht</code><BR/>
-            <code>sprachlog anästhesie ende</code><BR/>
-            <code>sprachlog anästhesie präsenz ende</code><BR/>
+            Spracheingabe starten mit: <BR/>
+            <code>sprachlog ...</code>
           </div>
         </div>
       </div>
@@ -157,7 +137,7 @@
 
     <div class="center">
       <button id="start_button" onclick="startButton(event)">
-        <img id="start_img" src="mic.gif" alt="Start"></button>
+        <img id="start_img" src="mic.gif" width="50" alt="Start"></button>
     </div>
 
       <div class="center">
@@ -195,35 +175,10 @@
 
     <!-- Custom JS right here: -->
     <script>
-      var final_transcript = '';
-      var freisprech = true;
       var recognizing = false;
       var ignore_onend;
       var aborted;
       var start_timestamp;
-      var phrases = [
-        'sprachlog anästhesie präsenz beginn',
-        'sprachlog anästhesie beginn',
-        'sprachlog anästhesie intubation',
-        'sprachlog anästhesie um intubation',
-        'sprachlog anästhesie zugang peripher',
-        'sprachlog anästhesie zugang arterie',
-        'sprachlog anästhesie zugang zvk',
-        'sprachlog anästhesie einleitung ende',
-        'sprachlog anästhesie umlagerung',
-        'sprachlog anästhesie cpr',
-        'sprachlog anästhesie stimulation',
-        'sprachlog radiologie cct',
-        'sprachlog radiologie ct hws',
-        'sprachlog radiologie ct stamm',
-        'sprachlog op beginn',
-        'sprachlog op schnitt',
-        'sprachlog op pause',
-        'sprachlog op pause ende',
-        'sprachlog op naht',
-        'sprachlog anästhesie ende',
-        'sprachlog anästhesie präsenz ende'
-        ];
       var speechLog = [];
       var resultOutput = document.querySelector('.output');
 
@@ -263,7 +218,7 @@
           }
         };
       
-        recognition.onend = function() {
+        recognition.onend = function() { // Das Web Speech Api Design gibt vor, dass jeder recognition zyklus zum Ende kommt, wenn die Spracheingabe endet. Ein weiterer recognition Zyklus muss dann manuell gestartet werden. Für dauerhafte recognition muss also bei Erreichen von onend die recognition wieder gestartet werden. Wir wollen die recognition aber auch manuell beenden können, daher prüfen wir, ob es zu einem aborted error kam. Falls dem so ist, dann starten wir die recognition nicht erneut.
           if (aborted) {
             recognizing = false;
             console.log('Onend reached AND aborted. Goodbye!');
@@ -275,33 +230,16 @@
         };
       
         recognition.onresult = function(event) {
-          if (!freisprech) {
-            var speechResult = event.results[0][0].transcript.toLowerCase();
-            var zeitStempel = new Date().toLocaleString().replace(',','');
-            if(phrases.includes(speechResult)) {
-              var logItem = zeitStempel + ' ' + speechResult.slice(10);
-              speechLog.push(logItem);
-              resultOutput.innerHTML = '';
-              speechLog.forEach(function(item, index, array) {
-                resultOutput.innerHTML += item + '\n';
-              });
-              console.log(speechLog);
-            } else {
-              var logItem = zeitStempel + ' ' + speechResult;
-              console.log(logItem);
-            }
-          } else {
-            var speechResult = event.results[0][0].transcript.toLowerCase();
-            var zeitStempel = new Date().toLocaleString().replace(',','');
-            if (speechResult.slice(0,9).includes('sprachlog')) {
-              var logItem = zeitStempel + ' ' + speechResult.slice(10);
-              speechLog.push(logItem);
-              resultOutput.innerHTML = '';
-              speechLog.forEach(function(item, index, array) {
-                resultOutput.innerHTML += item + '\n';
-              });
-              console.log(speechLog);
-            }
+          var speechResult = event.results[0][0].transcript.toLowerCase();
+          var zeitStempel = new Date().toLocaleString().replace(',','');
+          if (speechResult.slice(0,9).includes('sprachlog')) {
+            var logItem = zeitStempel + ' ' + speechResult.slice(10);
+            speechLog.push(logItem);
+            resultOutput.innerHTML = '';
+            speechLog.forEach(function(item, index, array) {
+              resultOutput.innerHTML += item + '\n';
+            });
+            console.log(speechLog);
           }
         };
       
