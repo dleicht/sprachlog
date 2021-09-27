@@ -2,6 +2,7 @@
 
 Erfassung anästhesierelevanter Zeitmarker mittels Spracherkennung.
 
+## Live DEMO: https://meschu.ga/sprachlog
 
 ### Voraussetzungen
 
