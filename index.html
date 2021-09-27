@@ -196,6 +196,7 @@
     <!-- Custom JS right here: -->
     <script>
       var final_transcript = '';
+      var freisprech = true;
       var recognizing = false;
       var ignore_onend;
       var aborted;
@@ -274,19 +275,33 @@
         };
       
         recognition.onresult = function(event) {
-          var speechResult = event.results[0][0].transcript.toLowerCase();
-          var zeitStempel = new Date().toLocaleString().replace(',','');
-          if(phrases.includes(speechResult)) {
-            var logItem = zeitStempel + ' ' + speechResult.slice(10);
-            speechLog.push(logItem);
-            resultOutput.innerHTML = '';
-            speechLog.forEach(function(item, index, array) {
-              resultOutput.innerHTML += item + '\n';
-            });
-            console.log(speechLog);
+          if (!freisprech) {
+            var speechResult = event.results[0][0].transcript.toLowerCase();
+            var zeitStempel = new Date().toLocaleString().replace(',','');
+            if(phrases.includes(speechResult)) {
+              var logItem = zeitStempel + ' ' + speechResult.slice(10);
+              speechLog.push(logItem);
+              resultOutput.innerHTML = '';
+              speechLog.forEach(function(item, index, array) {
+                resultOutput.innerHTML += item + '\n';
+              });
+              console.log(speechLog);
+            } else {
+              var logItem = zeitStempel + ' ' + speechResult;
+              console.log(logItem);
+            }
           } else {
-            var logItem = zeitStempel + ' ' + speechResult;
-            console.log(logItem);
+            var speechResult = event.results[0][0].transcript.toLowerCase();
+            var zeitStempel = new Date().toLocaleString().replace(',','');
+            if (speechResult.slice(0,9).includes('sprachlog')) {
+              var logItem = zeitStempel + ' ' + speechResult.slice(10);
+              speechLog.push(logItem);
+              resultOutput.innerHTML = '';
+              speechLog.forEach(function(item, index, array) {
+                resultOutput.innerHTML += item + '\n';
+              });
+              console.log(speechLog);
+            }
           }
         };
       
@@ -311,6 +326,6 @@
       };
     };  
       var current_style;
-      </script>
+    </script>
   </body>
 </html>
