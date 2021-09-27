@@ -232,7 +232,8 @@
         recognition.onresult = function(event) {
           var speechResult = event.results[0][0].transcript.toLowerCase();
           var zeitStempel = new Date().toLocaleString().replace(',','');
-          if (speechResult.slice(0,9).includes('sprachlog')) {
+//          console.log(speechResult + ' ' + speechResult.length)
+          if (speechResult.slice(0,9).includes('sprachlog') && speechResult.length > 10) {
             var logItem = zeitStempel + ' ' + speechResult.slice(10);
             speechLog.push(logItem);
             resultOutput.innerHTML = '';
