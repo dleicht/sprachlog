@@ -1,4 +1,4 @@
-<!--  Anästhesie Sprachlog™️ - SEP 21 - D.Leicht
+<!--  Anästhesie Audiolog™️ - SEP 21 - D.Leicht
       -----------------------------------------
       Erfassung anästhesierelevanter Zeitmarker mittels Spracherkennung.
       
@@ -15,7 +15,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
 
-    <title>Anästhesie Sprachlog</title>
+    <title>Anästhesie Audiolog</title>
 
     <style>
       * {
@@ -112,7 +112,7 @@
       <div class="container-fluid">
         <a class="navbar-brand" href="#">
           <img src="sektion-v3-120px.png" alt="" width="100" class="d-inline-block align-text-middle">
-          Anästhesie Sprachlog™️
+          Anästhesie Audiolog™️
         </a>
       </div>
     </nav>
@@ -129,7 +129,7 @@
             <div class="center text-muted">Erfassung anästhesierelevanter Zeitmarker mittels Spracherkennung.</div><BR/>
             <strong>Läuft nur mit dem Chrome Browser (Android, Mac, PC)!<BR/>Internetverbindung erforderlich!</strong><BR/>
             Spracheingabe starten mit: <BR/>
-            <code>sprachlog ...</code>
+            <code>audiolog ...</code>
           </div>
         </div>
       </div>
@@ -233,8 +233,8 @@
           var speechResult = event.results[0][0].transcript.toLowerCase();
           var zeitStempel = new Date().toLocaleString().replace(',','');
 //          console.log(speechResult + ' ' + speechResult.length)
-          if (speechResult.slice(0,9).includes('sprachlog') && speechResult.length > 10) {
-            var logItem = zeitStempel + ' ' + speechResult.slice(10);
+          if (speechResult.slice(0,8).includes('audiolog') && speechResult.length > 9) {
+            var logItem = zeitStempel + ' ' + speechResult.slice(9);
             speechLog.push(logItem);
             resultOutput.innerHTML = '';
             speechLog.forEach(function(item, index, array) {
