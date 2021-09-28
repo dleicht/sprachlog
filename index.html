@@ -182,11 +182,12 @@
       var speechLog = [];
       var resultOutput = document.querySelector('.output');
 
-      if (!('webkitSpeechRecognition' in window)) {
+      if (!('webkitSpeechRecognition' in window) || !('speechSynthesis' in window)) {
         upgrade();
       } else {
         start_button.style.display = 'inline-block';
-        var recognition = new webkitSpeechRecognition();
+        var recognition = new webkitSpeechRecognition(); 
+        var synth = window.speechSynthesis;
         recognition.continuous = false;
         recognition.interimResults = false;
       
@@ -217,8 +218,9 @@
             console.log('Not-allowed error detected.');
           }
         };
-      
-        recognition.onend = function() { // Das Web Speech Api Design gibt vor, dass jeder recognition zyklus zum Ende kommt, wenn die Spracheingabe endet. Ein weiterer recognition Zyklus muss dann manuell gestartet werden. Für dauerhafte recognition muss also bei Erreichen von onend die recognition wieder gestartet werden. Wir wollen die recognition aber auch manuell beenden können, daher prüfen wir, ob es zu einem aborted error kam. Falls dem so ist, dann starten wir die recognition nicht erneut.
+
+//      Das Web Speech Api Design gibt vor, dass jeder recognition zyklus zum Ende kommt, wenn die Spracheingabe endet. Ein weiterer recognition Zyklus muss dann manuell gestartet werden. Für dauerhafte recognition muss also bei Erreichen von onend die recognition wieder gestartet werden. Wir wollen die recognition aber auch manuell beenden können, daher prüfen wir, ob es zu einem aborted error kam. Falls dem so ist, dann starten wir die recognition nicht erneut.
+        recognition.onend = function() {
           if (aborted) {
             recognizing = false;
             console.log('Onend reached AND aborted. Goodbye!');
@@ -240,6 +242,13 @@
             speechLog.forEach(function(item, index, array) {
               resultOutput.innerHTML += item + '\n';
             });
+            var utterance = new SpeechSynthesisUtterance();
+            utterance.text = 'audiolog erfasst.';
+//            utterance.voice = selectedVoice;
+            utterance.lang = 'de-DE';
+//            utterance.rate = rate.value;
+//            utterance.pitch = pitch.value;
+            synth.speak(utterance);
             console.log(speechLog);
           }
         };
