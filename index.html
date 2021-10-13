@@ -129,7 +129,7 @@
             <div class="center text-muted">Erfassung anästhesierelevanter Zeitmarker mittels Spracherkennung.</div><BR/>
             <strong>Läuft nur mit dem Chrome Browser (Android, Mac, PC)!<BR/>Internetverbindung erforderlich!</strong><BR/>
             Spracheingabe starten mit: <BR/>
-            <code>audiolog ...</code>
+            <code>spracheingabe ...</code>
           </div>
         </div>
       </div>
@@ -167,12 +167,6 @@
     <!-- Option 1: Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
 
-    <!-- Option 2: Separate Popper and Bootstrap JS -->
-    <!--
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-W8fXfP3gkOKtndU4JGtKDvXbO53Wy8SZCQHczT5FMiiqmQfUpWbYdTil/SxwZgAN" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.min.js" integrity="sha384-skAcpIdS7UcVUC05LJ9Dxay8AXcDYfBJqt1CJ85S/CFujBsIzCIv+l9liuYLaMQ/" crossorigin="anonymous"></script>
-    -->
-
     <!-- Custom JS right here: -->
     <script>
       var recognizing = false;
@@ -181,6 +175,46 @@
       var start_timestamp;
       var speechLog = [];
       var resultOutput = document.querySelector('.output');
+      var audioContext = null;
+      var oscillatorNode = null;
+      var stopTime = 0;
+
+      // Wir bauen uns einen Beep Sound aus einem AudioContext Oscillator, zur Bestätigung der Spracheingabe.
+      // Das ist performanter als eine Sound Datei (WAV, OGG, MP3) abzuspielen.
+      function beep (frequency, durationSec, ramp=false)
+      {
+          if (oscillatorNode == null) {
+              audioContext = new (window.AudioContext || window.webkitAudioContext) ();
+              stopTime = audioContext.currentTime;
+
+              oscillatorNode = audioContext.createOscillator();
+              oscillatorNode.type = "sine";
+              oscillatorNode.connect (audioContext.destination);
+              if (ramp) {
+                  oscillatorNode.frequency.setValueAtTime (frequency, stopTime);
+              }
+              oscillatorNode.start ();
+              oscillatorNode.onended = function() {
+                  oscillatorNode = null;
+                  audioContext = null;
+              }
+          }
+
+          if (ramp) {
+              oscillatorNode.frequency.linearRampToValueAtTime (frequency, stopTime); // value in hertz
+          } else {
+              oscillatorNode.frequency.setValueAtTime (frequency, stopTime);  // value in hertz
+          }
+
+          stopTime += durationSec;
+          oscillatorNode.stop (stopTime);
+      };
+      function beepSound()
+      {
+              beep (250, 0.7);         // Tiefer Ton
+              beep (550, 0.5);         // Mittlerer Ton
+              beep (1000, 0.5, true);  // Hoher Ton
+      };
 
       if (!('webkitSpeechRecognition' in window) || !('speechSynthesis' in window)) {
         upgrade();
@@ -188,6 +222,7 @@
         start_button.style.display = 'inline-block';
         var recognition = new webkitSpeechRecognition(); 
         var synth = window.speechSynthesis;
+        recognition.lang = 'de-DE';
         recognition.continuous = false;
         recognition.interimResults = false;
       
@@ -226,29 +261,31 @@
             console.log('Onend reached AND aborted. Goodbye!');
             return;
           }
-          recognition.start();
           recognizing = true;
           console.log('Onend reached BUT moving on...');
+          recognition.start();
         };
       
         recognition.onresult = function(event) {
           var speechResult = event.results[0][0].transcript.toLowerCase();
           var zeitStempel = new Date().toLocaleString().replace(',','');
-//          console.log(speechResult + ' ' + speechResult.length)
-          if (speechResult.slice(0,8).includes('audiolog') && speechResult.length > 9) {
-            var logItem = zeitStempel + ' ' + speechResult.slice(9);
+          console.log(zeitStempel + ' ' + speechResult);
+          if (speechResult.slice(0,13).includes('spracheingabe') && speechResult.length > 14) {
+            var speechItem = speechResult.slice(14);
+            var logItem = zeitStempel + ' ' + speechItem;
             speechLog.push(logItem);
             resultOutput.innerHTML = '';
             speechLog.forEach(function(item, index, array) {
               resultOutput.innerHTML += item + '\n';
             });
-            var utterance = new SpeechSynthesisUtterance();
-            utterance.text = 'Spracheingabe erfasst.';
-//            utterance.voice = selectedVoice;
-            utterance.lang = 'de-DE';
-//            utterance.rate = rate.value;
-//            utterance.pitch = pitch.value;
-            synth.speak(utterance);
+            beepSound();
+/*            var utterance = new SpeechSynthesisUtterance();
+           utterance.text = speechItem + ' erfasst.';
+           utterance.voice = selectedVoice;
+           utterance.lang = 'de-DE';
+           utterance.rate = rate.value;
+           utterance.pitch = pitch.value;
+           synth.speak(utterance); */
             console.log(speechLog);
           }
         };
@@ -266,7 +303,6 @@
           return;
         }
         aborted = false;
-        recognition.lang = 'de-DE';
         recognition.start();
         ignore_onend = false;
         start_img.src = 'mic-slash.gif';
